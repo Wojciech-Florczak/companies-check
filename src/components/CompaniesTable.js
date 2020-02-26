@@ -11,6 +11,10 @@ export default function CompaniesTable() {
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [currentCompanies, setCurrentCompanies] = useState([]);
 
+  const settings = {
+    itemsPerPage: [10, 20, 30]
+  };
+
   async function fetchData() {
     let res = await axios.get("https://recruitment.hal.skygate.io/companies");
     let sorted = sortASC(res.data, "id");
@@ -22,7 +26,7 @@ export default function CompaniesTable() {
 
   useEffect(() => {
     getFullData();
-  }, [currentPage, companies]);
+  }, [currentPage, companies, itemsPerPage]);
 
   const lastItemIndex = currentPage * itemsPerPage;
   const firstItemIndex = lastItemIndex - itemsPerPage;
@@ -88,22 +92,10 @@ export default function CompaniesTable() {
     );
   });
 
-  function simpleSearch(term) {
-    return companies.filter(company => {
-      let results = Object.values(company);
-      for (const value of results) {
-        if (
-          value
-            .toString()
-            .toLowerCase()
-            .includes(term)
-        ) {
-          return company;
-        }
-      }
-    });
-  }
-  console.log(currentCompanies);
+  const handleQuantity = num => {
+    setItemsPerPage(num);
+    setCurrentPage(1);
+  };
 
   // handle sorting
   const handleClick = val => {
@@ -119,6 +111,16 @@ export default function CompaniesTable() {
         currentPage={currentPage}
         setCurrentPage={e => setCurrentPage(Number(e.target.id))}
       />
+      <div>
+        <span>Items to display: </span>
+        {settings.itemsPerPage.map(item => {
+          return (
+            <button key={item} onClick={() => handleQuantity(item)}>
+              {item}
+            </button>
+          );
+        })}
+      </div>
       <SearchBox companies={companies} />
       <table border="1">
         <thead>
@@ -126,9 +128,21 @@ export default function CompaniesTable() {
             <TableHeader handleClick={handleClick} name="ID" target="id" />
             <TableHeader handleClick={handleClick} name="Name" target="name" />
             <TableHeader handleClick={handleClick} name="City" target="city" />
-            <TableHeader handleClick={handleClick} name="Total Income" target="totalIncome" />
-            <TableHeader handleClick={handleClick} name="Average Income" target="averageIncome" />
-            <TableHeader handleClick={handleClick} name="Last Month Income" target="lastMonthIncome" />
+            <TableHeader
+              handleClick={handleClick}
+              name="Total Income"
+              target="totalIncome"
+            />
+            <TableHeader
+              handleClick={handleClick}
+              name="Average Income"
+              target="averageIncome"
+            />
+            <TableHeader
+              handleClick={handleClick}
+              name="Last Month Income"
+              target="lastMonthIncome"
+            />
           </tr>
         </thead>
         <tbody>{renderCompanies}</tbody>

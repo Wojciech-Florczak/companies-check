@@ -14,6 +14,7 @@ export default function SearchBox({ companies }) {
           return company;
         }
       }
+      return null
     });
   }
 
@@ -24,6 +25,7 @@ export default function SearchBox({ companies }) {
 
   return (
     <div>
+      <span>Search </span>
       <input type="text" onChange={e => handleChange(e)} />
     </div>
   );
