@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { sortASC, sumUp } from "../helpers";
 import Pagination from "./Pagination";
+import SearchBox from "./SearchBox";
+import TableHeader from "./TableHeader";
 
 export default function CompaniesTable() {
   const [companies, setCompanies] = useState([]);
@@ -88,17 +90,19 @@ export default function CompaniesTable() {
 
   function simpleSearch(term) {
     return companies.filter(company => {
-      if (company.name.toLowerCase().includes(term)) {
-        return company;
-      } else if (company.city.toLowerCase().includes(term)) {
-        return company;
-      } else if (company.id.toString().includes(term)) {
-        return company;
+      let results = Object.values(company);
+      for (const value of results) {
+        if (
+          value
+            .toString()
+            .toLowerCase()
+            .includes(term)
+        ) {
+          return company;
+        }
       }
     });
   }
-  console.log(simpleSearch("port"));
-
   console.log(currentCompanies);
 
   // handle sorting
@@ -115,33 +119,16 @@ export default function CompaniesTable() {
         currentPage={currentPage}
         setCurrentPage={e => setCurrentPage(Number(e.target.id))}
       />
+      <SearchBox companies={companies} />
       <table border="1">
         <thead>
           <tr>
-            <th scope="col">
-              <button onClick={() => handleClick("id")}>ID</button>
-            </th>
-            <th scope="col">
-              <button onClick={() => handleClick("name")}>Name</button>
-            </th>
-            <th scope="col">
-              <button onClick={() => handleClick("city")}>City</button>
-            </th>
-            <th scope="col">
-              <button onClick={() => handleClick("totalIncome")}>
-                Total Income
-              </button>
-            </th>
-            <th scope="col">
-              <button onClick={() => handleClick("averageIncome")}>
-                Average Income
-              </button>
-            </th>
-            <th scope="col">
-              <button onClick={() => handleClick("lastMonthIncome")}>
-                Last Month Income
-              </button>
-            </th>
+            <TableHeader handleClick={handleClick} name="ID" target="id" />
+            <TableHeader handleClick={handleClick} name="Name" target="name" />
+            <TableHeader handleClick={handleClick} name="City" target="city" />
+            <TableHeader handleClick={handleClick} name="Total Income" target="totalIncome" />
+            <TableHeader handleClick={handleClick} name="Average Income" target="averageIncome" />
+            <TableHeader handleClick={handleClick} name="Last Month Income" target="lastMonthIncome" />
           </tr>
         </thead>
         <tbody>{renderCompanies}</tbody>
