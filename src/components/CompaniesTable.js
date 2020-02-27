@@ -1,53 +1,35 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { sortASC, sumUp } from "../helpers";
+import { sortASC, sumUp, getLastMonth } from "../helpers";
 import Pagination from "./Pagination";
 import SearchBox from "./SearchBox";
 import TableHeader from "./TableHeader";
+import TableRows from "./TableRows";
+import QuantityToShow from "./QuantityToShow";
 
-export default function CompaniesTable() {
+export default function CompaniesTable2({ config }) {
   const [companies, setCompanies] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [displayedCompanies, setDisplayedCompanies] = useState([]);
   const [currentCompanies, setCurrentCompanies] = useState([]);
-
-  const settings = {
-    itemsPerPage: [10, 20, 30]
-  };
-
-  async function fetchData() {
-    let res = await axios.get("https://recruitment.hal.skygate.io/companies");
-    let sorted = sortASC(res.data, "id");
-    setCompanies(sorted);
-  }
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    getFullData();
-  }, [currentPage, companies, itemsPerPage]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(config.defaultItemsPerPage);
+  const [sortedBy, setSortedBy] = useState(config.sortBy);
 
   const lastItemIndex = currentPage * itemsPerPage;
   const firstItemIndex = lastItemIndex - itemsPerPage;
 
-  function getLastMonth() {
-    let date = new Date();
-    let currentYear = date.getFullYear();
-    let lastMonth = date
-      .getMonth()
-      .toString()
-      .padStart(2, "0");
-    let result = `${currentYear}-${lastMonth}`;
-    return result;
-  }
+  async function fetchCompanies() {
+    let res = await axios.get("https://recruitment.hal.skygate.io/companies");
+    let sortedCompanies = sortASC(res.data, config.sortBy);
 
-  /* Make request only for companies that are being displayed to reduce number of requests */
-  async function getFullData() {
-    // TODO Modify this function to get full data of all companies when column header is clicked or search input has changed
-    // TODO Implement requests caching
-    const current = companies.slice(firstItemIndex, lastItemIndex);
-    const currentCompaniesFullInfo = current.map(async company => {
+    return sortedCompanies;
+  }
+  async function mapIncomesToCompanies(arr, initial = false) {
+    if (initial) {
+      arr = arr.slice(0, itemsPerPage);
+    }
+    let lastMonth = getLastMonth();
+    const companiesFullInfo = arr.map(async company => {
       const res = await axios.get(
         `https://recruitment.hal.skygate.io/incomes/${company.id}`
       );
@@ -58,7 +40,7 @@ export default function CompaniesTable() {
         (totalIncome / incomes.length).toFixed(2)
       );
       const lastMonthIncome = sumUp(
-        incomes.filter(income => income.date.startsWith(getLastMonth()))
+        incomes.filter(income => income.date.startsWith(lastMonth))
       );
       return {
         ...company,
@@ -67,85 +49,100 @@ export default function CompaniesTable() {
         lastMonthIncome
       };
     });
-    const results = await Promise.all(currentCompaniesFullInfo);
-    setCurrentCompanies(results);
+    const results = await Promise.all(companiesFullInfo);
+    return results;
   }
 
-  const renderCompanies = currentCompanies.map((company, i) => {
-    const {
-      id,
-      name,
-      city,
-      totalIncome,
-      averageIncome,
-      lastMonthIncome
-    } = company;
-    return (
-      <tr key={i}>
-        <td>{id}</td>
-        <td>{name}</td>
-        <td>{city}</td>
-        <td>{totalIncome.toFixed(2)}</td>
-        <td>{averageIncome.toFixed(2)}</td>
-        <td>{lastMonthIncome.toFixed(2)}</td>
-      </tr>
-    );
-  });
+  useEffect(() => {
+    function applyDataToCompanies(data) {
+      setCurrentCompanies(data.slice(firstItemIndex, lastItemIndex));
+      setDisplayedCompanies(data);
+      setCompanies(data);
+    }
 
+    (async () => {
+      let data = await fetchCompanies();
+      let initialData = await mapIncomesToCompanies(data, true);
+      applyDataToCompanies(initialData);
+      // FIXME when this function run second time it makes unnecessary requests for companies that are already displayed
+      let fullData = await mapIncomesToCompanies(data);
+      applyDataToCompanies(fullData);
+    })();
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    setCurrentCompanies(
+      displayedCompanies.slice(firstItemIndex, lastItemIndex)
+    );
+  }, [
+    itemsPerPage,
+    currentPage,
+    displayedCompanies,
+    firstItemIndex,
+    lastItemIndex
+  ]);
+
+  // handle items per page
   const handleQuantity = num => {
     setItemsPerPage(num);
     setCurrentPage(1);
   };
 
   // handle sorting
-  const handleClick = val => {
-    setCompanies([...sortASC(companies, val)]);
+  const handleSort = val => {
+    if (val === sortedBy) {
+      setDisplayedCompanies([...displayedCompanies].reverse());
+      setSortedBy("");
+    } else {
+      const sortedCompanies = [...sortASC(displayedCompanies, val)];
+      setDisplayedCompanies(sortedCompanies);
+      setSortedBy(val);
+    }
     setCurrentPage(1);
   };
 
   return (
     <>
       <Pagination
-        itemsCount={companies.length}
+        itemsCount={displayedCompanies.length}
         itemsPerPage={itemsPerPage}
         currentPage={currentPage}
         setCurrentPage={e => setCurrentPage(Number(e.target.id))}
       />
-      <div>
-        <span>Items to display: </span>
-        {settings.itemsPerPage.map(item => {
-          return (
-            <button key={item} onClick={() => handleQuantity(item)}>
-              {item}
-            </button>
-          );
-        })}
-      </div>
-      <SearchBox companies={companies} />
+      <QuantityToShow config={config} handleQuantity={handleQuantity} />
+      <SearchBox
+        displayedCompanies={displayedCompanies}
+        setDisplayedCompanies={setDisplayedCompanies}
+        companies={companies}
+        setCurrentPage={setCurrentPage}
+      />
       <table border="1">
         <thead>
           <tr>
-            <TableHeader handleClick={handleClick} name="ID" target="id" />
-            <TableHeader handleClick={handleClick} name="Name" target="name" />
-            <TableHeader handleClick={handleClick} name="City" target="city" />
+            <TableHeader handleSort={handleSort} name="ID" target="id" />
+            <TableHeader handleSort={handleSort} name="Name" target="name" />
+            <TableHeader handleSort={handleSort} name="City" target="city" />
             <TableHeader
-              handleClick={handleClick}
+              handleSort={handleSort}
               name="Total Income"
               target="totalIncome"
             />
             <TableHeader
-              handleClick={handleClick}
+              handleSort={handleSort}
               name="Average Income"
               target="averageIncome"
             />
             <TableHeader
-              handleClick={handleClick}
+              handleSort={handleSort}
               name="Last Month Income"
               target="lastMonthIncome"
             />
           </tr>
         </thead>
-        <tbody>{renderCompanies}</tbody>
+        <tbody>
+          <TableRows currentCompanies={currentCompanies} />
+        </tbody>
       </table>
     </>
   );

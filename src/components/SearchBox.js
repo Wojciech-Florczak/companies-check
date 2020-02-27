@@ -1,6 +1,10 @@
 import React from "react";
 
-export default function SearchBox({ companies }) {
+//TODO implement debouncing
+
+export default function SearchBox(props) {
+  const { companies, setDisplayedCompanies, setCurrentPage } = props;
+
   function simpleSearch(term) {
     return companies.filter(company => {
       let results = Object.values(company);
@@ -14,15 +18,19 @@ export default function SearchBox({ companies }) {
           return company;
         }
       }
-      return null
+      return null;
     });
   }
 
   const handleChange = e => {
     e.preventDefault();
-    console.log(simpleSearch(e.target.value));
+    if (e.target.value.length >= 3) {
+      setDisplayedCompanies(simpleSearch(e.target.value));
+      setCurrentPage(1);
+    } else {
+      setDisplayedCompanies(companies);
+    }
   };
-
   return (
     <div>
       <span>Search </span>

@@ -1,9 +1,16 @@
 import React from "react";
 
-export default function TableHeader({handleClick, name, target}) {
+const buttonStyling = {
+  width: "100%",
+  height: "100%",
+  backgroundColor: "transparent",
+  outline: 0
+}
+
+export default function TableHeader({handleSort, name, target}) {
   return (
     <th scope="col">
-      <button onClick={() => handleClick(target)}>{name}</button>
+      <button style={buttonStyling} onClick={() => handleSort(target)}>{name}</button>
     </th>
   );
 }

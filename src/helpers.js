@@ -12,3 +12,14 @@ export function sumUp(arr) {
     return parseFloat((acc + currVal).toFixed(10));
   }, 0);
 }
+
+export function getLastMonth() {
+  let date = new Date();
+  let currentYear = date.getFullYear();
+  let lastMonth = date
+    .getMonth()
+    .toString()
+    .padStart(2, "0");
+  let result = `${currentYear}-${lastMonth}`;
+  return result;
+}
