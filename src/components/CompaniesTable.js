@@ -108,7 +108,7 @@ export default function CompaniesTable2({ config }) {
         itemsCount={displayedCompanies.length}
         itemsPerPage={itemsPerPage}
         currentPage={currentPage}
-        setCurrentPage={e => setCurrentPage(Number(e.target.id))}
+        setCurrentPage={e => setCurrentPage(Number(e.target.value))}
       />
       <QuantityToShow config={config} handleQuantity={handleQuantity} />
       <SearchBox
