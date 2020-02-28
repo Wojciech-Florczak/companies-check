@@ -1,5 +1,5 @@
 import React from "react";
-import CompaniesTable from "./components/CompaniesTable";
+import Home from "./pages/Home";
 
 const config = {
   itemsPerPage: [10, 20, 30],
@@ -16,7 +16,7 @@ function App() {
 
   return (
     <div style={wrapperStyling}>
-      <CompaniesTable config={config} />
+      <Home config={config} />
     </div>
   );
 }

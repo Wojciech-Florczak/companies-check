@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { sortASC, sumUp, getLastMonth } from "../helpers";
-import Pagination from "./Pagination";
-import SearchBox from "./SearchBox";
-import TableHeader from "./TableHeader";
-import TableRows from "./TableRows";
-import QuantityToShow from "./QuantityToShow";
+import Pagination from "../components/Pagination";
+import SearchBox from "../components/SearchBox";
+import QuantityToShow from "../components/QuantityToShow";
+import Table from "../components/Table";
 
-export default function CompaniesTable2({ config }) {
+export default function Home({ config }) {
   const [companies, setCompanies] = useState([]);
   const [displayedCompanies, setDisplayedCompanies] = useState([]);
   const [currentCompanies, setCurrentCompanies] = useState([]);
@@ -130,33 +129,7 @@ export default function CompaniesTable2({ config }) {
         companies={companies}
         setCurrentPage={setCurrentPage}
       />
-      <table border="1">
-        <thead>
-          <tr>
-            <TableHeader handleSort={handleSort} name="ID" target="id" />
-            <TableHeader handleSort={handleSort} name="Name" target="name" />
-            <TableHeader handleSort={handleSort} name="City" target="city" />
-            <TableHeader
-              handleSort={handleSort}
-              name="Total Income"
-              target="totalIncome"
-            />
-            <TableHeader
-              handleSort={handleSort}
-              name="Average Income"
-              target="averageIncome"
-            />
-            <TableHeader
-              handleSort={handleSort}
-              name="Last Month Income"
-              target="lastMonthIncome"
-            />
-          </tr>
-        </thead>
-        <tbody>
-          <TableRows currentCompanies={currentCompanies} />
-        </tbody>
-      </table>
+      <Table currentCompanies={currentCompanies} handleSort={handleSort} />
     </>
   );
 }
