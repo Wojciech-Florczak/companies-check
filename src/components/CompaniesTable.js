@@ -121,6 +121,7 @@ export default function CompaniesTable2({ config }) {
         itemsPerPage={itemsPerPage}
         currentPage={currentPage}
         setCurrentPage={e => setCurrentPage(Number(e.target.value))}
+        defaultItemsPerPage={config.defaultItemsPerPage}
       />
       <QuantityToShow config={config} handleQuantity={handleQuantity} />
       <SearchBox

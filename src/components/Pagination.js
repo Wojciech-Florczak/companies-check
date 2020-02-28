@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import horizontalLoader from "../assets/horizontal-loader.svg";
 /* 
     << |1| 2 3 4 5 6 ... 30 >>
     << 1 |2| 3 4 5 6 ... 30 >>
@@ -27,7 +28,15 @@ const listItemStyling = {
 };
 
 export default function Pagination(props) {
-  const { itemsPerPage, itemsCount, setCurrentPage, currentPage } = props;
+  const {
+    itemsPerPage,
+    itemsCount,
+    setCurrentPage,
+    currentPage,
+    defaultItemsPerPage
+  } = props;
+
+  const [isLoading, setIsLoading] = useState(true);
   const pageNumbers = [];
   for (let i = 1; i <= Math.ceil(itemsCount / itemsPerPage); i++) {
     pageNumbers.push(i);
@@ -93,22 +102,33 @@ export default function Pagination(props) {
       );
     }
   }
+  useEffect(() => {
+    if (itemsCount > defaultItemsPerPage) {
+      setIsLoading(false);
+    }
+  }, [itemsCount]);
 
   return (
-    <ul style={listStyling}>
-      <button
-        value={currentPage - 1}
-        onClick={currentPage !== firstItem ? setCurrentPage : undefined}
-      >
-        {`<<`}
-      </button>
-      {renderPagesNumbers()}
-      <button
-        value={currentPage + 1}
-        onClick={currentPage !== lastItem ? setCurrentPage : undefined}
-      >
-        {`>>`}
-      </button>
-    </ul>
+    <>
+      {isLoading ? (
+        <img src={horizontalLoader} alt="" />
+      ) : (
+        <ul style={listStyling}>
+          <button
+            value={currentPage - 1}
+            onClick={currentPage !== firstItem ? setCurrentPage : undefined}
+          >
+            {`<<`}
+          </button>
+          {renderPagesNumbers()}
+          <button
+            value={currentPage + 1}
+            onClick={currentPage !== lastItem ? setCurrentPage : undefined}
+          >
+            {`>>`}
+          </button>
+        </ul>
+      )}
+    </>
   );
 }
