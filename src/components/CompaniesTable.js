@@ -14,6 +14,7 @@ export default function CompaniesTable2({ config }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(config.defaultItemsPerPage);
   const [sortedBy, setSortedBy] = useState(config.sortBy);
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
 
   const lastItemIndex = currentPage * itemsPerPage;
   const firstItemIndex = lastItemIndex - itemsPerPage;
@@ -27,6 +28,8 @@ export default function CompaniesTable2({ config }) {
   async function mapIncomesToCompanies(arr, initial = false) {
     if (initial) {
       arr = arr.slice(0, itemsPerPage);
+    } else {
+      arr = arr.slice(itemsPerPage, arr.length);
     }
     let lastMonth = getLastMonth();
     const companiesFullInfo = arr.map(async company => {
@@ -53,23 +56,32 @@ export default function CompaniesTable2({ config }) {
     return results;
   }
 
-  useEffect(() => {
-    function applyDataToCompanies(data) {
-      setCurrentCompanies(data.slice(firstItemIndex, lastItemIndex));
-      setDisplayedCompanies(data);
-      setCompanies(data);
-    }
+  function applyDataToCompanies(data) {
+    setCurrentCompanies(data.slice(firstItemIndex, lastItemIndex));
+    setDisplayedCompanies([...displayedCompanies, ...data]);
+    setCompanies([...companies, ...data]);
+  }
 
+  // Load initial data on mount
+  useEffect(() => {
     (async () => {
       let data = await fetchCompanies();
       let initialData = await mapIncomesToCompanies(data, true);
       applyDataToCompanies(initialData);
-      // FIXME when this function run second time it makes unnecessary requests for companies that are already displayed
-      let fullData = await mapIncomesToCompanies(data);
-      applyDataToCompanies(fullData);
+      setInitialDataLoaded(true);
     })();
     // eslint-disable-next-line
   }, []);
+
+  // Fetch and set remaining data
+  if (initialDataLoaded) {
+    (async () => {
+      let data = await fetchCompanies();
+      let fullData = await mapIncomesToCompanies(data);
+      setInitialDataLoaded(false);
+      applyDataToCompanies(fullData);
+    })();
+  }
 
   useEffect(() => {
     setCurrentCompanies(

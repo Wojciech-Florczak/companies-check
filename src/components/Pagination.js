@@ -44,7 +44,7 @@ export default function Pagination(props) {
       </li>
     );
   }
-  
+
   function renderPagesNumbers() {
     if (pageNumbers.length <= 6) {
       return pageNumbers.map(num => <PageNumber key={num} num={num} />);
