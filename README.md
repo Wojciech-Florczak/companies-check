@@ -1,68 +1,71 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Companies Check
+## Description
+---
+A simple website that retrieves data of companies and presents their incomes in the form of a table.  
+Made for recruitment purposes.
+### Preview
+Website is hosted on [Netlify] and it's available for preview
+### Installation
+Clone this repository and  run npm install dependencies inside downloaded directory
+```
+git clone https://github.com/Wojciech-Florczak/companies-check.git
+cd companies-check
+npm install
+```
+### Usage
+To run this project in development mode use:
+```
+npm start
+``` 
+### Configuration
+In App.js file you can specify:
+```javascript
+const config = {
+  itemsPerPage: [10, 20, 30],
+  defaultItemsPerPage: 20,
+  sortBy: "id"
+};
+```
+### Pages
+#### Home
+The main page that stores most of the application's logic and renders all components.  
+When the user enters the page it makes an initial request to the server to display the first page of results. A number of results depend on the number specified in config in App.js.  
+After that app makes requests to get the rest of the results. It improves UX because in order to display every result app has to make 300 requests and do math operations to calculate incomes of companies which takes a few seconds, but when the initial request is made first results are displayed to the user almost immediately.
 
-## Available Scripts
+### Components
 
-In the project directory, you can run:
+#### Pagination
+Component dynamically generate page numbers based on number of results.
 
-### `npm start`
+#### SearchBox
+Filter results based on a user input. It uses Object.values to iterate through all fields in the table.  
+The search input is wrapped in a debounce hook, that allows you to set a time delay before performing the search. In this case, it is not that useful because it performs searching on data stored in the state, but it can be used to limit the number of requests sent to the server.
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+#### QuantityToShow
+Display buttons that allow you to change how many results are displayed per page.
+You can configure it by changing the config in the App.js file.
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+#### Table
+Render the whole table. You can specify headers in this component using key-value pairs.
+```javascript
+const headers = {
+  id: "ID",
+  name: "Name",
+  city: "City",
+  totalIncome: "Total Income",
+  averageIncome: "Average Income",
+  lastMonthIncome: "Last Month Income"
+};
 
-### `npm test`
+```
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+#### TableHeader
+Used to display header in the table. When clicked one time it sorts the table in ascending order when clicked the second time it sorts the table in descending order.
 
-### `npm run build`
+#### TableRows
+Render table rows based on results.
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+Created with [Create React App](https://github.com/facebook/create-react-app).
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+[Netlify]: https://stoic-lamport-fac389.netlify.com
