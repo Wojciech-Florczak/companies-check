@@ -1,31 +1,52 @@
 import React, { useState, useEffect } from "react";
 import horizontalLoader from "../assets/horizontal-loader.svg";
-/* 
-    << |1| 2 3 4 5 6 ... 30 >>
-    << 1 |2| 3 4 5 6 ... 30 >>
-    << 1 2 |3| 4 5 6 ... 30 >>
-    << 1 2 3 |4| 5 6 ... 30 >>
+import { createUseStyles } from "react-jss";
 
-    << 1 ... 3 4 |5| 6 7 ... 30 >>
-    << 1 ... 5 6 |7| 8 9 ... 30 >>
-    << 1 ... 23 24 |25| 26 27 ... 30 >>
-    << 1 ... 24 25 |26| 27 28 ... 30 >>
-
-    << 1 ... 25 26 |27| 28 29 30 >>
-    << 1 ... 25 26 27 |28| 29 30 >>
-    << 1 ... 25 26 27 28 |29| 30 >>
-    << 1 ... 25 26 27 28 29 |30| >>
-*/
-
-const listStyling = {
-  listStyle: "none",
-  display: "flex",
-  padding: 0
-};
-
-const listItemStyling = {
-  margin: 5
-};
+const useStyles = createUseStyles({
+  list: {
+    listStyle: "none",
+    display: "flex",
+    flex: 2,
+    alignSelf: "center",
+    padding: 0,
+    fontSize: "1.3rem",
+    marginTop: 5,
+    marginBottom: 5,
+    "@media(max-width: 767px)": {
+      justifyContent: "center",
+      flexWrap: "wrap"
+    }
+  },
+  listItem: {
+    backgroundColor: "white",
+    margin: 1,
+    borderRadius: 2,
+    textAlign: "center",
+    padding: ".4rem",
+    color: "#36304A",
+    fontWeight: "bold",
+    cursor: "pointer"
+  },
+  current: {
+    border: "1px solid #3D79B8",
+    backgroundColor: "#3D79B8",
+    color: "white",
+    fontWeight: "bold"
+  },
+  seperator: {
+    color: "#6b6b6b"
+  },
+  showedResults: {
+    flex: 1,
+    paddingLeft: "1rem",
+    "@media(max-width: 767px)": {
+      flex: "initial",
+      marginBottom: 5,
+      marginTop: 5,
+      padding: 0
+    }
+  }
+});
 
 export default function Pagination(props) {
   const {
@@ -33,8 +54,12 @@ export default function Pagination(props) {
     itemsCount,
     setCurrentPage,
     currentPage,
-    defaultItemsPerPage
+    defaultItemsPerPage,
+    firstItemIndex,
+    lastItemIndex,
+    tableDOM
   } = props;
+  const classes = useStyles();
 
   const [isLoading, setIsLoading] = useState(true);
   const pageNumbers = [];
@@ -43,18 +68,37 @@ export default function Pagination(props) {
   }
   const firstItem = pageNumbers[0];
   const lastItem = pageNumbers[pageNumbers.length - 1];
+  const onLastPage = currentPage === lastItem;
 
-  const seperator = <li style={listItemStyling}>...</li>;
+  const seperator = (
+    <li className={`${classes.listItem} ${classes.seperator}`}>...</li>
+  );
+  const numberOfResults = () => {
+    if (itemsCount === 0) {
+      return <h4 className={classes.showedResults}>No results</h4>;
+    } else {
+      return (
+        <h4 className={classes.showedResults}>{`Showing ${firstItemIndex + 1}-${
+          onLastPage ? itemsCount : lastItemIndex
+        } of ${itemsCount} results`}</h4>
+      );
+    }
+  };
 
   function PageNumber({ num }) {
+    const current = num === currentPage;
     return (
-      <li style={listItemStyling} value={num} onClick={setCurrentPage}>
+      <li
+        className={`${classes.listItem} ${current ? classes.current : ""}`}
+        value={num}
+        onClick={e => handleClick(e)}
+      >
         {num}
       </li>
     );
   }
 
-  function renderPagesNumbers() {
+  function renderPageNumbers() {
     if (pageNumbers.length <= 6) {
       return pageNumbers.map(num => <PageNumber key={num} num={num} />);
     }
@@ -106,28 +150,40 @@ export default function Pagination(props) {
     if (itemsCount > defaultItemsPerPage) {
       setIsLoading(false);
     }
-  }, [itemsCount]);
+  }, [itemsCount, defaultItemsPerPage]);
+
+  const handleClick = e => {
+    setCurrentPage(e);
+    tableDOM.scrollTo(0, 0);
+  };
 
   return (
     <>
       {isLoading ? (
         <img src={horizontalLoader} alt="" />
       ) : (
-        <ul style={listStyling}>
-          <button
-            value={currentPage - 1}
-            onClick={currentPage !== firstItem ? setCurrentPage : undefined}
-          >
-            {`<<`}
-          </button>
-          {renderPagesNumbers()}
-          <button
-            value={currentPage + 1}
-            onClick={currentPage !== lastItem ? setCurrentPage : undefined}
-          >
-            {`>>`}
-          </button>
-        </ul>
+        <>
+          {numberOfResults()}
+          {itemsCount > 0 && (
+            <ul className={classes.list}>
+              <li
+                className={classes.listItem}
+                value={currentPage - 1}
+                onClick={currentPage !== firstItem ? setCurrentPage : undefined}
+              >
+                {`<`}
+              </li>
+              {renderPageNumbers()}
+              <li
+                className={classes.listItem}
+                value={currentPage + 1}
+                onClick={currentPage !== lastItem ? setCurrentPage : undefined}
+              >
+                {`>`}
+              </li>
+            </ul>
+          )}
+        </>
       )}
     </>
   );

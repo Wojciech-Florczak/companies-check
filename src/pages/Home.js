@@ -5,6 +5,38 @@ import Pagination from "../components/Pagination";
 import SearchBox from "../components/SearchBox";
 import QuantityToShow from "../components/QuantityToShow";
 import Table from "../components/Table";
+import { createUseStyles } from "react-jss";
+import DropdownSort from "../components/DropdownSort";
+
+const useStyles = createUseStyles({
+  menu: {
+    fontSize: "1rem",
+    display: "flex",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    alignContent: "center",
+    width: "100%",
+    backgroundColor: "#eaeaea",
+    boxSizing: "border-box",
+    padding: ".85rem .5rem",
+    "@media(max-width: 767px)": {
+      backgroundColor: "#36304A",
+      color: "white"
+    }
+  },
+  bottomMenu: {
+    color: "white",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#36304A",
+    minHeight: 61,
+    "@media(max-width: 767px)": {
+      flexDirection: "column",
+      minHeight: 76
+    }
+  }
+});
 
 export default function Home({ config }) {
   const [companies, setCompanies] = useState([]);
@@ -14,9 +46,12 @@ export default function Home({ config }) {
   const [itemsPerPage, setItemsPerPage] = useState(config.defaultItemsPerPage);
   const [sortedBy, setSortedBy] = useState(config.sortBy);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+  const [fullDataLoaded, setFullDataLoaded] = useState(false);
 
+  const classes = useStyles();
   const lastItemIndex = currentPage * itemsPerPage;
   const firstItemIndex = lastItemIndex - itemsPerPage;
+  const tableDOM = document.getElementById("table-wrapper");
 
   async function fetchCompanies() {
     let res = await axios.get("https://recruitment.hal.skygate.io/companies");
@@ -60,7 +95,6 @@ export default function Home({ config }) {
     setDisplayedCompanies([...displayedCompanies, ...data]);
     setCompanies([...companies, ...data]);
   }
-
   // Load initial data on mount
   useEffect(() => {
     (async () => {
@@ -71,16 +105,6 @@ export default function Home({ config }) {
     })();
     // eslint-disable-next-line
   }, []);
-
-  // Fetch and set remaining data
-  if (initialDataLoaded) {
-    (async () => {
-      let data = await fetchCompanies();
-      let fullData = await mapIncomesToCompanies(data);
-      setInitialDataLoaded(false);
-      applyDataToCompanies(fullData);
-    })();
-  }
 
   useEffect(() => {
     setCurrentCompanies(
@@ -93,11 +117,21 @@ export default function Home({ config }) {
     firstItemIndex,
     lastItemIndex
   ]);
-
+  // Fetch and set remaining data
+  if (initialDataLoaded) {
+    (async () => {
+      let data = await fetchCompanies();
+      let fullData = await mapIncomesToCompanies(data);
+      setInitialDataLoaded(false);
+      setFullDataLoaded(true);
+      applyDataToCompanies(fullData);
+    })();
+  }
   // handle items per page
   const handleQuantity = num => {
     setItemsPerPage(num);
     setCurrentPage(1);
+    tableDOM.scrollTo(0, 0);
   };
 
   // handle sorting
@@ -105,31 +139,63 @@ export default function Home({ config }) {
     if (val === sortedBy) {
       setDisplayedCompanies([...displayedCompanies].reverse());
       setSortedBy("");
+      tableDOM.scrollTo(0, 0);
     } else {
       const sortedCompanies = [...sortASC(displayedCompanies, val)];
       setDisplayedCompanies(sortedCompanies);
       setSortedBy(val);
+      tableDOM.scrollTo(0, 0);
     }
     setCurrentPage(1);
   };
 
   return (
     <>
-      <Pagination
-        itemsCount={displayedCompanies.length}
-        itemsPerPage={itemsPerPage}
-        currentPage={currentPage}
-        setCurrentPage={e => setCurrentPage(Number(e.target.value))}
-        defaultItemsPerPage={config.defaultItemsPerPage}
+      <div className={classes.menu}>
+        <QuantityToShow
+          config={config}
+          handleQuantity={handleQuantity}
+          itemsPerPage={itemsPerPage}
+          fullDataLoaded={fullDataLoaded}
+          setCurrentPage={setCurrentPage}
+          tableDOM={tableDOM}
+        />
+        <DropdownSort
+          fullDataLoaded={fullDataLoaded}
+          config={config}
+          displayedCompanies={displayedCompanies}
+          setDisplayedCompanies={setDisplayedCompanies}
+          setCurrentPage={setCurrentPage}
+          tableDOM={tableDOM}
+        />
+        <SearchBox
+          displayedCompanies={displayedCompanies}
+          setDisplayedCompanies={setDisplayedCompanies}
+          companies={companies}
+          setCurrentPage={setCurrentPage}
+          config={config}
+          tableDOM={tableDOM}
+        />
+      </div>
+      <Table
+        currentCompanies={currentCompanies}
+        handleSort={handleSort}
+        config={config}
+        fullDataLoaded={fullDataLoaded}
+        initialDataLoaded={initialDataLoaded}
       />
-      <QuantityToShow config={config} handleQuantity={handleQuantity} />
-      <SearchBox
-        displayedCompanies={displayedCompanies}
-        setDisplayedCompanies={setDisplayedCompanies}
-        companies={companies}
-        setCurrentPage={setCurrentPage}
-      />
-      <Table currentCompanies={currentCompanies} handleSort={handleSort} />
+      <div className={classes.bottomMenu}>
+        <Pagination
+          itemsCount={displayedCompanies.length}
+          itemsPerPage={itemsPerPage}
+          currentPage={currentPage}
+          setCurrentPage={e => setCurrentPage(Number(e.target.value))}
+          defaultItemsPerPage={config.defaultItemsPerPage}
+          lastItemIndex={lastItemIndex}
+          firstItemIndex={firstItemIndex}
+          tableDOM={tableDOM}
+        />
+      </div>
     </>
   );
 }
