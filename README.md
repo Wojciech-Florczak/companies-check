@@ -13,7 +13,7 @@ Website is hosted on Netlify and it's available for [preview].
  </p>
 
 ## Installation
-Clone this repository and  run npm install dependencies inside downloaded directory
+Clone this repository and install dependencies inside project directory.
 ```
 git clone https://github.com/Wojciech-Florczak/companies-check.git
 cd companies-check
